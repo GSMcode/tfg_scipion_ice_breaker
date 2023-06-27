@@ -24,16 +24,16 @@
 # *  e-mail address 'you@yourinstitution.email'
 # *
 # **************************************************************************
+from pwem.wizards import DownsampleWizard
 from pyworkflow.gui import ListTreeProviderString, dialog
 from pyworkflow.object import String
 from pyworkflow.wizard import Wizard
-from myplugin.protocols import MyPluginPrefixHelloWorld
+from myplugin.protocols.protocol_icebreaker_preprocess import PreprocessMicrographsIceBreaker
 
 
-class MyPluginPrefixHelloWorldWizard(Wizard):
+class PreprocessIceBreakerWizard(Wizard):
     # Dictionary to target protocol parameters
-    _targets = [(MyPluginPrefixHelloWorld, ['operation'])]
-
+    _targets = [(PreprocessMicrographsIceBreaker ['input'])]
     def show(self, form, *params):
 
         # This are the greetings:
