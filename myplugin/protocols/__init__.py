@@ -1,1 +1,2 @@
 from .protocol_icebreaker_preprocess import PreprocessMicrographsIceBreaker
+from .protocol_hello_world import MyPluginPrefixHelloWorld

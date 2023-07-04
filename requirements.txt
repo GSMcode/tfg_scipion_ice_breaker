@@ -1,2 +1,5 @@
 scipion-pyworkflow
 scipion-em
+emtable~=0.0.14
+setuptools~=65.6.3
+icebreaker-em

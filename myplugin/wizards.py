@@ -30,7 +30,7 @@ from pyworkflow.object import String
 from pyworkflow.wizard import Wizard
 from myplugin.protocols.protocol_icebreaker_preprocess import PreprocessMicrographsIceBreaker
 
-
+"""
 class PreprocessIceBreakerWizard(Wizard):
     # Dictionary to target protocol parameters
     _targets = [(PreprocessMicrographsIceBreaker ['input'])]
@@ -48,3 +48,4 @@ class PreprocessIceBreakerWizard(Wizard):
 
         # Set the chosen value back to the form
         form.setVar('operation', dlg.values[0].get())
+"""
