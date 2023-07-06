@@ -33,6 +33,7 @@ from pyworkflow.utils import Message
 from emtable import Table
 from pwem.objects import SetOfMicrographs, Set
 import relion.convert as convert
+import shutil
 
 class PreprocessMicrographsIceBreaker(Protocol):
     """
@@ -93,7 +94,9 @@ class PreprocessMicrographsIceBreaker(Protocol):
         cmd = 'ib_job'
         # Ejecutar el comando utilizando runJob
         self.runJob(cmd, arguments=ib_args)
-
+        self._log.info("?")
+        #Copiar micrografias flattened a extra
+        for f in os.listdir(self._getTmpPath())
     def createOutputStep(self):
         outputName = "flattenedMicrographs"
         outputMicrographs = self._getFlattenedMicrographs()
@@ -104,12 +107,15 @@ class PreprocessMicrographsIceBreaker(Protocol):
     # --------------------------- UTILS functions ------------------------------
     def _createInputFiles(self):
         self._log.info("Create a .star file as expected by iceBreaker")
-        micsTable = Table(columns=['rlnMicrographName'])
+        #Copying mics to TMP
+        micsTable = Table(columns=['rlnMicrographName', 'rlnImageId'])
         # Por ahora guardaremos el fichero .star en output
         self._log.info("Micrographs path: ")
+
         for mic in self.inputMicrographs.get():
-            self._log.info(os.path.abspath(mic.getFileName()))
-            micsTable.addRow(os.path.abspath(mic.getFileName()))
+            shutil.copy(mic.getFileName(), self._getTmpPath())
+            self._log.info(os.path.basename(mic.getFileName()))
+            micsTable.addRow(self._getTmpPath(os.path.basename(mic.getFileName())), mic.getObjId())
         with open(os.path.join(self._output_directory, 'input_micrographs.star'), 'w') as f:
             f.write("# Star file generated with Scipion\n")
             micsTable.writeStar(f, tableName='micrographs')
