@@ -31,7 +31,7 @@ import os.path
 from pyworkflow.protocol import Protocol, params, Integer
 from pyworkflow.utils import Message
 from emtable import Table
-from pwem.objects import SetOfMicrographs, Set
+from pwem.objects import SetOfMicrographs, Set, Micrograph
 import relion.convert as convert
 import shutil
 
@@ -43,7 +43,7 @@ class PreprocessMicrographsIceBreaker(Protocol):
     _label = "Preprocess Flatten"
     _result = None
     _output_directory = None
-
+    _flattened_files = {}
     # -------------------------- DEFINE param functions ----------------------
     def _defineParams(self, form):
         """ Define the input parameters that will be used.
@@ -96,11 +96,26 @@ class PreprocessMicrographsIceBreaker(Protocol):
         self.runJob(cmd, arguments=ib_args)
         self._log.info("?")
         #Copiar micrografias flattened a extra
-        for f in os.listdir(self._getTmpPath())
+        extraDir = os.path.abspath(self._getExtraPath())
+        for f in os.listdir(self._getTmpPath()):
+            fx = os.path.splitext(f)
+            if fx[0].endswith('flattened'):
+                fltFile = os.path.abspath(self._getTmpPath(f))
+                shutil.copy(fltFile, extraDir)
+                #tenemos que guardar la referencia de cada imagen flattened con la original
+
     def createOutputStep(self):
-        outputName = "flattenedMicrographs"
-        outputMicrographs = self._getFlattenedMicrographs()
-        pass
+        #Ahora a partir del fichero .star debemos crear el SetOfMicrographs con flattened
+        #También debemos pasar las caracteristicas del set anterior
+        flatMicSet = SetOfMicrographs.create(self._getExtraPath())
+        flatMicSet.copyItems(self.inputMicrographs.get())
+        for mic in flatMicSet:
+            self._log.info(mic.getFileName())
+            mic.setFileName(self._getExtraPath(os.path.basename(mic.getFileName()).replace(".mrc", "flattened.mrc")))
+            self._log.info('OUTPUT MICROGRAPHS:')
+            self._log.info(mic.getFileName())
+        self._defineOutputs(result=params.PointerParam(self.inputMicrographs.get(), pointerClass='SetOfMicrographs'))
+
 
     # --------------------------- INFO functions -----------------------------------
 
@@ -115,7 +130,7 @@ class PreprocessMicrographsIceBreaker(Protocol):
         for mic in self.inputMicrographs.get():
             shutil.copy(mic.getFileName(), self._getTmpPath())
             self._log.info(os.path.basename(mic.getFileName()))
-            micsTable.addRow(self._getTmpPath(os.path.basename(mic.getFileName())), mic.getObjId())
+            micsTable.addRow(os.path.abspath(self._getTmpPath(os.path.basename(mic.getFileName()))), mic.getObjId())
         with open(os.path.join(self._output_directory, 'input_micrographs.star'), 'w') as f:
             f.write("# Star file generated with Scipion\n")
             micsTable.writeStar(f, tableName='micrographs')
@@ -134,9 +149,9 @@ class PreprocessMicrographsIceBreaker(Protocol):
         return self._getExtraPath('input_micrographs.star')
     def _getOutputFilename(self):
         return self._getExtraPath('')
-    def _getFlattenedMicrographs(self):
+"""    def _getFlattenedMicrographs(self):
         micSet = SetOfMicrographs(filename=':flattened:')
         starWriter = convert.createWriter(outputDir=self._output_directory,
                                           useBaseName=True)
         starWriter.writeSetOfMicrographs(micSet, os.path.join(self._output_directory,
-                                                              ))
+                                                              ))"""
