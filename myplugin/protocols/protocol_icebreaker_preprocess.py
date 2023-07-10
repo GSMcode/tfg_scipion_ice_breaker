@@ -27,12 +27,12 @@
 
 
 import os.path
-
+import enum
 from pyworkflow.protocol import Protocol, params, Integer
 from pyworkflow.utils import Message
 from emtable import Table
 from pwem.objects import SetOfMicrographs, Set, Micrograph
-import relion.convert as convert
+from relion.convert.convert31 import Writer, Reader
 import shutil
 
 class PreprocessMicrographsIceBreaker(Protocol):
@@ -44,6 +44,9 @@ class PreprocessMicrographsIceBreaker(Protocol):
     _result = None
     _output_directory = None
     _flattened_files = {}
+
+    class ProtIcebreakerToMicsOutput(enum.Enum):
+        outputMicrographs = SetOfMicrographs()
     # -------------------------- DEFINE param functions ----------------------
     def _defineParams(self, form):
         """ Define the input parameters that will be used.
@@ -114,26 +117,25 @@ class PreprocessMicrographsIceBreaker(Protocol):
             mic.setFileName(self._getExtraPath(os.path.basename(mic.getFileName()).replace(".mrc", "flattened.mrc")))
             self._log.info('OUTPUT MICROGRAPHS:')
             self._log.info(mic.getFileName())
-        self._defineOutputs(result=params.PointerParam(self.inputMicrographs.get(), pointerClass='SetOfMicrographs'))
-
-
+        self._defineOutputs()
+        self._updateOutputSet
     # --------------------------- INFO functions -----------------------------------
 
     # --------------------------- UTILS functions ------------------------------
     def _createInputFiles(self):
         self._log.info("Create a .star file as expected by iceBreaker")
         #Copying mics to TMP
-        micsTable = Table(columns=['rlnMicrographName', 'rlnImageId'])
+        #micsTable = Table(columns=['rlnMicrographName', 'rlnImageId'])
         # Por ahora guardaremos el fichero .star en output
         self._log.info("Micrographs path: ")
-
         for mic in self.inputMicrographs.get():
             shutil.copy(mic.getFileName(), self._getTmpPath())
-            self._log.info(os.path.basename(mic.getFileName()))
-            micsTable.addRow(os.path.abspath(self._getTmpPath(os.path.basename(mic.getFileName()))), mic.getObjId())
-        with open(os.path.join(self._output_directory, 'input_micrographs.star'), 'w') as f:
-            f.write("# Star file generated with Scipion\n")
-            micsTable.writeStar(f, tableName='micrographs')
+            newPath = self._getTmpPath(os.path.basename(mic.getFileName()))
+            mic.setFileName(newPath)
+            self._log.info(mic.getFileName())
+            #micsTable.addRow(os.path.abspath(self._getTmpPath(os.path.basename(mic.getFileName()))), mic.getObjId())
+        inputStarWriter = Writer()
+        inputStarWriter.writeSetOfMicrographs(self.inputMicrographs.get(), os.path.join(self._output_directory, 'input_micrographs.star'))
 
     def _getArgs(self):
         # Return the lsit of args for the c_getArgsommand
