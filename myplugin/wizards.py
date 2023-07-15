@@ -28,7 +28,7 @@ from pwem.wizards import DownsampleWizard
 from pyworkflow.gui import ListTreeProviderString, dialog
 from pyworkflow.object import String
 from pyworkflow.wizard import Wizard
-from myplugin.protocols.protocol_icebreaker_preprocess import PreprocessMicrographsIceBreaker
+from myplugin.protocols.protocol_icebreaker_cluster import PreprocessMicrographsIceBreaker
 
 """
 class PreprocessIceBreakerWizard(Wizard):

@@ -1,2 +1,2 @@
-from .protocol_icebreaker_preprocess import PreprocessMicrographsIceBreaker
-from .protocol_hello_world import MyPluginPrefixHelloWorld
+from .protocol_icebreaker_cluster import ProtClusterIceBreaker
+from .protocol_icebreaker_group import ProtGroupThicknessIceBreaker
